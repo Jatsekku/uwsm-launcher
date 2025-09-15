@@ -1,8 +1,9 @@
 #!/bin/bash
 set +o errexit
 
-# shellcheck disable=SC1091
-source "/etc/bash-logger.sh"
+# Source logger module
+# shellcheck disable=SC1090,SC1091
+source "${BASH_LOGGER_SH}"
 logger_register_module "uwsm-launcher" "$LOG_LEVEL_DBG"
 logger_set_log_file "$HOME/.local/state/uwsm-launcher/uwsm-launcher.log"
 

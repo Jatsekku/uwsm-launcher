@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.myNixOS.uwsm-launcher;
+  cfg = config.services.uwsm-launcher;
 
   bash-logger-pkg = inputs.bash-logger.packages.${pkgs.system}.default;
   uwsm-launcher = import ./package.nix {
@@ -15,7 +15,7 @@ let
   };
 in
 {
-  options.myNixOS.uwsm-launcher = {
+  options.services.uwsm-launcher = {
     enable = lib.mkEnableOption "Enable UWSM launcher";
 
     username = lib.mkOption {
@@ -56,7 +56,7 @@ in
       };
     };
 
-    myNixOS.uwsm-launcher.exe-start = "systemctl start uwsm-launcher.service";
-    myNixOS.uwsm-launcher.exe-stop = "systemctl stop uwsm-launcher.service";
+    services.uwsm-launcher.exe-start = "systemctl start uwsm-launcher.service";
+    services.uwsm-launcher.exe-stop = "systemctl stop uwsm-launcher.service";
   };
 }
