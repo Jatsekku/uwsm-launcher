@@ -6,6 +6,7 @@ set +o errexit
 source "${BASH_LOGGER_SH}"
 logger_register_module "uwsm-launcher" "$LOG_LEVEL_DBG"
 logger_set_log_file "$HOME/.local/state/uwsm-launcher/uwsm-launcher.log"
+logger_set_log_format "%ce%F %T (%mod_name) {%pid} %file:%line [%cs%lvl%ce] %msg"
 
 __is_compositor_running_for_user() {
     local -r username="$1"
@@ -18,19 +19,23 @@ _run_command_in_systemd_context() {
     local -r command="$1"
 
     uid=$(id -u "$USER")
-    output=$(
-        bash -c "
-            source /etc/profile
+    env PATH="$PATH" bash -c "
+        source /etc/profile
+        export PATH='${PATH}'
 
-            export DISPLAY=:0
-            export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${uid}/bus
-            export XDG_RUNTIME_DIR=/run/user/${uid}
+        source '${BASH_LOGGER_SH}'
+        logger_register_module uwsm-launcher-user '$LOG_LEVEL_DBG'
+        logger_set_log_file '$HOME/.local/state/uwsm-launcher/uwsm-launcher.log'
+        logger_set_log_format '| %T {%pid} [%cs%lvl%ce] %msg'
 
-            $command
-        " 2>&1
-    )
+        export DISPLAY=:0
+        export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${uid}/bus
+        export XDG_RUNTIME_DIR=/run/user/${uid}
 
-    echo "$output"
+        unbuffer $command 2>&1 | while IFS= read -r line; do
+            log_dbg \"\$line\"
+        done
+    " 2>&1
 }
 
 start_compositor_as_user() {
@@ -45,8 +50,7 @@ start_compositor_as_user() {
 
     log_inf "Starting $compositor_name as user $username..."
     local -r command="uwsm start $compositor_launcher"
-    output=$(_run_command_in_systemd_context "$command")
-    log_dbg "Launcher response:"$'\n'"$output"
+    _run_command_in_systemd_context "$command"
 }
 
 stop_compositor_as_user() {
@@ -55,8 +59,7 @@ stop_compositor_as_user() {
 
     log_inf "Stoping $compositor_name as user $username..."
     local -r command="uwsm stop"
-    output=$(_run_command_in_systemd_context "$command")
-    log_dbg "Launcher response:"$'\n'"$output"
+    _run_command_in_systemd_context "$command"
 }
 
 main() {

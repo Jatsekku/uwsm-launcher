@@ -13,6 +13,7 @@ pkgs.writeShellApplication {
     ${uwsm-launcher-scriptContent}
   '';
   runtimeInputs = [
+    pkgs.expect
     pkgs.bash
     pkgs.uwsm
   ];
