@@ -1,4 +1,4 @@
-{ pkgs, bash-logger }:
+{ pkgs, bash-logger, seamless-login }:
 
 let
   uwsm-launcher-scriptContent = builtins.readFile ./uwsm-launcher.sh;
@@ -16,5 +16,6 @@ pkgs.writeShellApplication {
     pkgs.expect
     pkgs.bash
     pkgs.uwsm
+    seamless-login
   ];
 }

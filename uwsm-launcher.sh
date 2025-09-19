@@ -19,7 +19,7 @@ _run_command_in_systemd_context() {
     local -r command="$1"
 
     uid=$(id -u "$USER")
-    env PATH="$PATH" bash -c "
+    seamless-login env PATH="$PATH" bash -c "
         source /etc/profile
         export PATH='${PATH}'
 
