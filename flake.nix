@@ -32,9 +32,26 @@
         }
       );
 
+      nixosModules = {
+        uwsm-launcher =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+          import ./module.nix {
+            inherit
+              config
+              lib
+              pkgs
+              self
+              ;
+          };
+        default = self.nixosModules.uwsm-launcher;
+      };
+
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
-      nixosModules.uwsm-launcher = ./module.nix;
-      nixosModules.default = self.nixosModules.uwsm-launcher;
     };
 }

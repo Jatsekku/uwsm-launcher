@@ -1,18 +1,13 @@
 {
+  self,
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 let
   cfg = config.services.uwsm-launcher;
-
-  bash-logger-pkg = inputs.bash-logger.packages.${pkgs.system}.default;
-  uwsm-launcher = import ./package.nix {
-    inherit pkgs;
-    bash-logger = bash-logger-pkg;
-  };
+  uwsm-launcher = self.packages.${pkgs.system}.default;
 in
 {
   options.services.uwsm-launcher = {
