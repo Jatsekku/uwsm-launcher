@@ -15,11 +15,34 @@ __is_compositor_running_for_user() {
     pgrep -u "$username" "$compositor_name" > /dev/null 2>&1
 }
 
-_run_command_in_systemd_context() {
+__start_compositor_systemd_context() {
     local -r command="$1"
 
     uid=$(id -u "$USER")
     seamless-login env PATH="$PATH" bash -c "
+        source /etc/profile
+        export PATH='${PATH}'
+
+        source '${BASH_LOGGER_SH}'
+        logger_register_module uwsm-launcher-user '$LOG_LEVEL_DBG'
+        logger_set_log_file '$HOME/.local/state/uwsm-launcher/uwsm-launcher.log'
+        logger_set_log_format '| %T {%pid} [%cs%lvl%ce] %msg'
+
+        export DISPLAY=:0
+        export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${uid}/bus
+        export XDG_RUNTIME_DIR=/run/user/${uid}
+
+        unbuffer $command 2>&1 | while IFS= read -r line; do
+            log_dbg \"\$line\"
+        done
+    " 2>&1
+}
+
+__stop_compositor_systemd_context() {
+    local -r command="$1"
+
+    uid=$(id -u "$USER")
+    env PATH="$PATH" bash -c "
         source /etc/profile
         export PATH='${PATH}'
 
@@ -50,7 +73,7 @@ start_compositor_as_user() {
 
     log_inf "Starting $compositor_name as user $username..."
     local -r command="uwsm start $compositor_launcher"
-    _run_command_in_systemd_context "$command"
+    __start_compositor_systemd_context "$command"
 }
 
 stop_compositor_as_user() {
@@ -59,7 +82,7 @@ stop_compositor_as_user() {
 
     log_inf "Stoping $compositor_name as user $username..."
     local -r command="uwsm stop"
-    _run_command_in_systemd_context "$command"
+    __stop_compositor_systemd_context "$command"
 }
 
 main() {
